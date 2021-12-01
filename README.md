@@ -98,7 +98,7 @@ Model baze kao i tip baze (NoSQL, SQL) je proizvoljan.
 # Način ocenjivanja
 
 1.	Aplikacija je funkcionalna i postoji Flask aplikacija – 51 poen
-a.	Aplikacija se sastoji od 1 aplikacije bez baze koja je potpuno funkcionalna
+    -	Aplikacija se sastoji od 1 aplikacije bez baze koja je potpuno funkcionalna
 2.	Implementiran Engine kao posebna Flask aplikacija gde UI komunicira sa Engine-om putem API-a – 10 poena
 3.	Implementirana je baza sa kojom komunicira Engine – 9 poena
 4.	Korišćenje niti prilikom implementacije – 10 poena
