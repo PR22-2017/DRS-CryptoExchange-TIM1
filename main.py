@@ -1,11 +1,12 @@
 import requests
 from flask import Flask, render_template, request, redirect, url_for
+from flask_login import login_required, current_user
 
 app = Flask(__name__)
 
 
 @app.route("/")
-def template_test():
+def home():
     api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
     response = requests.get(api_link)
     data = response.json()
@@ -16,20 +17,26 @@ def template_test():
                            curr5_name=data[4]['name'], curr5_price=data[4]['current_price'])
 
 
-@app.route('/home')
-def home():
-    return render_template('home.html')
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+        if request.form['email'] != 'admin@admin.com' or request.form['password'] != 'admin':
             error = 'Invalid credentials.'
         else:
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
+
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')
 
 
 if __name__ == '__main__':
