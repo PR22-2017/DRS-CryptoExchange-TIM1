@@ -2,8 +2,8 @@ from datetime import datetime
 import time
 from curses.ascii import isalpha
 
-from models.database import Database
-from models.transaction import Transaction, State
+from model.database import Database
+from model.transaction import Transaction, State
 
 
 class User:
