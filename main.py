@@ -28,7 +28,7 @@ def login():
     return render_template('login.html', error=error)
 
 
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')
 
