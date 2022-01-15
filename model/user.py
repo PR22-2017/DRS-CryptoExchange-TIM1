@@ -1,8 +1,8 @@
 from datetime import datetime
 import time
-from curses.ascii import isalpha
+# from curses.ascii import isalpha
 
-from model.database import Database
+# from model.database import Database
 from model.transaction import Transaction, State
 
 
@@ -40,14 +40,14 @@ class User:
         self.balance = self.balance + balance
         return True
 
-    def new_transaction(self, crypto, receiver):
-        if Database.check_user_exists(receiver):
-            t = Transaction(self.email, receiver, crypto)
-            while datetime.utcnow().timestamp() - t.start_time > (5*60*1000):
-                # do something
-                print("not yet")
-                time.sleep(10)
-            if t.get_state() == State.processing:
-                t.process_transaction()
-                return True
-        return False
+    # def new_transaction(self, crypto, receiver):
+    #     if Database.check_user_exists(receiver):
+    #         t = Transaction(self.email, receiver, crypto)
+    #         while datetime.utcnow().timestamp() - t.start_time > (5*60*1000):
+    #             # do something
+    #             print("not yet")
+    #             time.sleep(10)
+    #         if t.get_state() == State.processing:
+    #             t.process_transaction()
+    #             return True
+    #     return False

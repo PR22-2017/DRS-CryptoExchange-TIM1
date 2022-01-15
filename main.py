@@ -1,7 +1,8 @@
 import requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
-import sqlite3
+from model.database import Database
+from model.user import User
 
 app = Flask(__name__)
 
@@ -27,46 +28,26 @@ def login():
 #        else:
 #            return redirect(url_for('home'))
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        sqlconnection = sqlite3.connect('model/Database.db')
-        cursor = sqlconnection.cursor()
-        query1 = "SELECT Email, Password FROM Users WHERE Email = '{em}' AND Password = '{ps}'".format(
-                                                                                                em=email,
-                                                                                                ps=password)
-        rows = cursor.execute(query1)
-        rows = rows.fetchall()
-        if len(rows) == 1:
+        db = Database()
+        user_data = db.get_user_for_login(request.form['email'], request.form['password'])
+        print(user_data)
+        if user_data:
             return render_template("profile.html")
-        else:
-            error = 'Invalid credentials.'
+
+        error = 'Invalid credentials.'
     return render_template('login.html', error=error)
 
 
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        firstname = request.form['firstname']
-        lastname = request.form['lastname']
-        address = request.form['address']
-        city = 0
-        country = request.form['country']
-        phone_number = request.form['phone_number']
-        email = request.form['email']
-        password = request.form['password']
-        sqlconnection = sqlite3.connect('model/Database.db')
-        cursor = sqlconnection.cursor()
-        query1 = "INSERT INTO Users VALUES('{fn}','{ln}','{ad}','{ct}','{cn}','{pn}','{em}','{ps}')".format(
-                                                                                                     fn=firstname,
-                                                                                                     ln=lastname,
-                                                                                                     ad=address,
-                                                                                                     ct=city,
-                                                                                                     cn=country,
-                                                                                                     pn=phone_number,
-                                                                                                     em=email,
-                                                                                                     ps=password)
-        cursor.execute(query1)
-        sqlconnection.commit()
+        db = Database()
+        user = User(
+            request.form['firstname'], request.form['lastname'], request.form['address'],
+            request.form['city'], request.form['country'], request.form['phone_number'],
+            request.form['email'], request.form['password']
+        )
+        db.create_user(user)
         return redirect("/")
     return render_template('register.html')
 
