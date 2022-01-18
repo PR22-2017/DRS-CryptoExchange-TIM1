@@ -12,10 +12,6 @@
     <td>PR 22/2017</td>
   </tr>
   <tr>
-    <td>Nebojša Vasić</td>
-    <td>PR 93/2016</td>
-  </tr>
-  <tr>
     <td>Đorđe Lazarević</td>
     <td>PR 147/2016</td>
   </tr>
