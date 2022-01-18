@@ -1,6 +1,9 @@
+import datetime
+
 import requests
 from flask import render_template, request, redirect, url_for, flash
 from CryptoExchange import app, bcrypt, db
+from CryptoExchange.Forms.UserActivationForm import UserActivationForm
 from CryptoExchange.models.dbmodels import User, Transactions
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
@@ -24,18 +27,21 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        if not current_user.verified:
+            return redirect(url_for('profile_activation'))
         return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            flash(f'Welcome {user.first_name}!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+            if current_user.verified:
+                flash(f'Welcome {user.first_name}!', 'success')
+                return redirect(url_for('home'))
+            else:
+                return redirect(url_for('profile_activation'))
         else:
             flash(f'Unsuccessful login. Please check email and password.', 'danger')
-
     return render_template('login.html', title='Login', form=form)
 
 
@@ -48,6 +54,8 @@ def logout():
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
+        if not current_user.verified:
+            return redirect(url_for('profile_activation'))
         return redirect(url_for('home'))
     form = RegistrationForm()
     form.country.choices = get_countries()
@@ -56,7 +64,7 @@ def register():
         user = User(
                 first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data,
                 address=form.address.data, city=form.city.data, country=form.country.data,
-                phone=form.phone.data, password=hashed_password
+                phone=form.phone.data, password=hashed_password, verified=False
                 )
         db.session.add(user)
         db.session.commit()
@@ -69,6 +77,8 @@ def register():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
     form = UserAccountForm()
     form.country.choices = get_countries()
     if form.validate_on_submit():
@@ -90,8 +100,33 @@ def profile():
         form.city.data = current_user.city
         form.country.data = current_user.country
         form.phone.data = current_user.phone
-
     return render_template('profile.html', title='Profile', form=form)
+
+
+@app.route('/profile_activation', methods=['GET', 'POST'])
+@login_required
+def profile_activation():
+    form = UserActivationForm()
+    curr_year = datetime.datetime.now().year
+    years = []
+    for x in range(curr_year, curr_year + 5):
+        years.append(x)
+    months = []
+    for x in range(1, 13):
+        months.append(str(x).zfill(2))
+    form.card_year.choices = years
+    form.card_month.choices = months
+    if form.validate_on_submit():
+        current_user.card_number = form.card_number.data
+        current_user.card_month = form.card_month.data
+        current_user.card_year = form.card_year.data
+        current_user.name_on_card = form.name_on_card.data
+        current_user.verified = True
+        current_user.balance = 1
+        db.session.commit()
+        flash('Your account has been activated!', 'success')
+        return redirect(url_for('profile'))
+    return render_template('profile_activation.html', title='Profile Activation', form=form)
 
 
 def get_countries():

@@ -1,3 +1,4 @@
+from curses.ascii import isalpha
 from datetime import datetime
 import time
 # from curses.ascii import isalpha
@@ -17,16 +18,15 @@ class User:
         self.email = email
         self.password = password
         self.balance = 0
+        self.card_number = '1234123412341234'
+        self.name_on_card = 'First Last'
+        self.card_month = '01'
+        self.card_year = 2021
+        self.cvv_cvc = '123'
         # dictionary "crypto_name:Crypto"
         self.crypto_balances = {}
         self.transactions = {}
-        self.__verified = False
-
-    def is_verified(self):
-        return self.__verified
-
-    def verify_user(self):
-        self.__verified = True
+        self.verified = False
 
     def add_balance(self, card_number, card_name, card_code, balance):
         if len(card_number) > 16 or len(card_number) < 16:

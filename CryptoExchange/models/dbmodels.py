@@ -15,11 +15,21 @@ class User(db.Model, UserMixin):
     address = db.Column(db.String(20), nullable=False)
     city = db.Column(db.String(20), nullable=False)
     country = db.Column(db.String(20), nullable=False)
-    phone = db.Column(db.String(10), nullable=False, unique=True)
+    phone = db.Column(db.String(15), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(60), nullable=False)
-    sent_transactions = db.relationship('Transactions', backref='sender', foreign_keys="Transactions.sender_id", lazy=True)
-    recv_transactions = db.relationship('Transactions', backref='receiver',foreign_keys="Transactions.receiver_id", lazy=True)
+    verified = db.Column(db.Boolean, default=False, nullable=False)
+    card_number = db.Column(db.String(16), default='1234123412341234', nullable=False)
+    name_on_card = db.Column(db.String(40), default='First Last', nullable=False)
+    card_month = db.Column(db.String(2), default='01', nullable=False)
+    card_year = db.Column(db.Integer, default=2022, nullable=False)
+    cvv_cvc = db.Column(db.String(3), default='123', nullable=False)
+    balance = db.Column(db.Float, default=0, nullable=False)
+
+    sent_transactions = db.relationship('Transactions', backref='sender',
+                                        foreign_keys="Transactions.sender_id", lazy=True)
+    recv_transactions = db.relationship('Transactions', backref='receiver',
+                                        foreign_keys="Transactions.receiver_id", lazy=True)
 
     def __repr__(self):
         return f"User('{self.first_name}', '{self.last_name}', '{self.email}')"

@@ -13,7 +13,7 @@ class UserAccountForm(FlaskForm):
     city = StringField('City', validators=[DataRequired()])
     country = SelectField('Country')
     phone = StringField('Phone', validators=[DataRequired()])
-    submit = SubmitField('Sign up')
+    submit = SubmitField('Change info')
 
     def validate_email(self, email):
         if email.data != current_user.email:
