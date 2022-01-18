@@ -32,6 +32,5 @@ class Transactions(db.Model):
     crypto = db.Column(db.String(60), nullable=False)
     date_started = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-
     def __repr__(self):
         return f"User('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}', '{self.date_started}')"
