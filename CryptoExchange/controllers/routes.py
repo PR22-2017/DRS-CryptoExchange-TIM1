@@ -1,7 +1,7 @@
 import requests
 from flask import render_template, request, redirect, url_for, flash
 from CryptoExchange import app, bcrypt, db
-from CryptoExchange.models.dbmodels import User, Transaction
+from CryptoExchange.models.dbmodels import User, Transactions
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
 from CryptoExchange.Forms.LoginForm import LoginForm
