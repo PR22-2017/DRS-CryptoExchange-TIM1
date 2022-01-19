@@ -35,14 +35,14 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            if current_user.verified:
-                flash(f'Welcome {user.first_name}!', 'success')
-                return redirect(url_for('home'))
+            next_page = request.args.get('next')
+            if login_user.verified:
+                return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
                 return redirect(url_for('profile_activation'))
         else:
-            flash(f'Unsuccessful login. Please check email and password.', 'danger')
-    return render_template('login.html', title='Login', form=form)
+            flash('Login Unsuccessful. Please check email and password', 'danger')
+        return render_template('login.html', title='Login', form=form)
 
 
 @app.route('/logout')
