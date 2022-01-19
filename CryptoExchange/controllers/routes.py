@@ -3,6 +3,7 @@ import datetime
 import requests
 from flask import render_template, request, redirect, url_for, flash
 from CryptoExchange import app, bcrypt, db
+from CryptoExchange.Forms.PurchaseForm import PurchaseForm
 from CryptoExchange.Forms.UserActivationForm import UserActivationForm
 from CryptoExchange.models.dbmodels import User, Transactions
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
@@ -36,12 +37,12 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
-            if login_user.verified:
+            if user.verified:
                 return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
                 return redirect(url_for('profile_activation'))
         else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+            flash('Login Unsuccessful. Please check email and password.', 'danger')
         return render_template('login.html', title='Login', form=form)
 
 
@@ -129,6 +130,17 @@ def profile_activation():
     return render_template('profile_activation.html', title='Profile Activation', form=form)
 
 
+@app.route('/purchase', methods=['GET', 'POST'])
+@login_required
+def purchase():
+    form = PurchaseForm()
+    form.currencies = get_currencies()
+    if form.validate_on_submit():
+        return redirect(url_for('profile'))
+    return render_template('profile_activation.html', title='Purchase Crypto', form=form)
+
+
+
 def get_countries():
     url = 'https://restcountries.com/v2/all?fields=name,altSpellings'
     response = requests.get(url)
@@ -139,3 +151,13 @@ def get_countries():
 
         d.append((country['altSpellings'][0], country['name']))
     return d
+
+def get_currencies():
+    api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
+    retval = []
+    response = requests.get(api_link)
+    data = response.json()
+    for item in data:
+        retval.append(item['name'])
+        print(item['name'])
+    return retval
