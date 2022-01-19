@@ -19,11 +19,11 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(60), nullable=False)
     verified = db.Column(db.Boolean, default=False, nullable=False)
-    card_number = db.Column(db.String(16), default='1234123412341234', nullable=False)
-    name_on_card = db.Column(db.String(40), default='First Last', nullable=False)
-    card_month = db.Column(db.String(2), default='01', nullable=False)
-    card_year = db.Column(db.Integer, default=2022, nullable=False)
-    cvv_cvc = db.Column(db.String(3), default='123', nullable=False)
+    card_number = db.Column(db.String(16), nullable=True)
+    name_on_card = db.Column(db.String(40), nullable=True)
+    card_month = db.Column(db.String(2), nullable=True)
+    card_year = db.Column(db.Integer, nullable=True)
+    cvv_cvc = db.Column(db.String(3), nullable=True)
     balance = db.Column(db.Float, default=0, nullable=False)
 
     sent_transactions = db.relationship('Transactions', backref='sender',

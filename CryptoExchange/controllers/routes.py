@@ -43,7 +43,7 @@ def login():
                 return redirect(url_for('profile_activation'))
         else:
             flash('Login Unsuccessful. Please check email and password.', 'danger')
-        return render_template('login.html', title='Login', form=form)
+    return render_template('login.html', title='Login', form=form)
 
 
 @app.route('/logout')
@@ -122,6 +122,7 @@ def profile_activation():
         current_user.card_month = form.card_month.data
         current_user.card_year = form.card_year.data
         current_user.name_on_card = form.name_on_card.data
+        current_user.cvv_cvc = form.cvv_cvc.data
         current_user.verified = True
         current_user.balance = 1
         db.session.commit()
@@ -134,11 +135,11 @@ def profile_activation():
 @login_required
 def purchase():
     form = PurchaseForm()
-    form.currencies = get_currencies()
+    form.currencies.choices = get_currencies()
+    form.balance.data = current_user.balance
     if form.validate_on_submit():
         return redirect(url_for('profile'))
-    return render_template('profile_activation.html', title='Purchase Crypto', form=form)
-
+    return render_template('purchase.html', title='Purchase Crypto', form=form)
 
 
 def get_countries():
@@ -152,6 +153,7 @@ def get_countries():
         d.append((country['altSpellings'][0], country['name']))
     return d
 
+
 def get_currencies():
     api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
     retval = []
@@ -159,5 +161,4 @@ def get_currencies():
     data = response.json()
     for item in data:
         retval.append(item['name'])
-        print(item['name'])
     return retval

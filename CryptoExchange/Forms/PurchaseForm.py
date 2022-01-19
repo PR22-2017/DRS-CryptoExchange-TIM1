@@ -8,6 +8,7 @@ class PurchaseForm(FlaskForm):
     balance = StringField('Balance')
     currencies = SelectField('Crypto Currency', validators=[DataRequired()])
     quantity = StringField('Quantity', validators=[DataRequired()])
+    submit = SubmitField('Purchase Crypto')
 
     def validate_quantity(self, quantity):
 
