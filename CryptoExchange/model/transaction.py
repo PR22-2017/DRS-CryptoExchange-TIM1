@@ -1,6 +1,6 @@
 import random
 import sha3
-from enum import Enum
+from enum import Enum, unique
 from datetime import datetime
 
 
@@ -29,6 +29,7 @@ class Transaction:
         self.__state = State.denied
 
 
+@unique
 class State(Enum):
     processing = 0
     processed = 1

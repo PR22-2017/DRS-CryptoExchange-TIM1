@@ -85,4 +85,8 @@ class Database:
         # @TODO: implementirati kasnije kad budemo znali sta sve moze da se edituje kod korisnika
         raise NotImplemented
 
+    def check_user_exists(self,user_id):
+        pass
+        # TODO - try to get user from database (determin how to identify user who need to be chacked)
+
     #cursor.execute("INSERT INTO Users VALUES ('Nevena', 'Stefanovic', 'Adresa 123', 'Grad', 'Drzava', '0642222222', 'email@email.com', 'lozinka123')")

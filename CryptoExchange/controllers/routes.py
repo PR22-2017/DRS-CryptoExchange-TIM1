@@ -10,7 +10,7 @@ from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
 from CryptoExchange.Forms.LoginForm import LoginForm
 from flask_login import login_required, current_user, login_user, logout_user
-
+from CryptoExchange.Forms.TransactionForm import TransactionForm
 
 @app.route("/")
 @app.route("/home")
@@ -50,6 +50,16 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route('/transfer', methods=['GET', 'POST'])
+def transfer():
+    form = TransactionForm()
+    form.currencies.choices = get_currencies()
+    if form.validate_on_submit():
+        print(form)
+        # TODO - validate sender wallet and give coins to reciever, correct both balances
+    return render_template('transaction.html', title='Transaction Crypto', form = form)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -137,6 +147,8 @@ def purchase():
     form = PurchaseForm()
     form.currencies.choices = get_currencies()
     form.balance.data = current_user.balance
+    # TODO - from database get bitcoin marcet cap and calc new balance
+
     if form.validate_on_submit():
         return redirect(url_for('profile'))
     return render_template('purchase.html', title='Purchase Crypto', form=form)
