@@ -1,17 +1,14 @@
-import datetime
-
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, HiddenField, Label
-from wtforms.validators import DataRequired, Length, ValidationError, Email
+from wtforms import StringField, SubmitField, SelectField
+from wtforms.validators import DataRequired, ValidationError, Email
 from CryptoExchange.models.dbmodels import User
 
 
 class TransactionForm(FlaskForm):
-    receiver_email = StringField('Email', validators=[Email()])
-    currency = HiddenField(validators=[DataRequired()])
-    price = HiddenField(validators=[DataRequired()])
-    currencies = SelectField('Crypto Currency', validators=[DataRequired()])
+    receiver_email = StringField('Email', validators=[DataRequired(), Email()])
+    currency = SelectField('Crypto currency', validators=[DataRequired()])
+    balance = SelectField('Crypto balance', validators=[DataRequired()])
     quantity = StringField('Quantity', validators=[DataRequired()])
     submit = SubmitField('Send Crypto')
 
@@ -19,10 +16,12 @@ class TransactionForm(FlaskForm):
         user = User.query.filter_by(email=receiver_email.data).first()
         if not user:
             raise ValidationError("User with entered email doesn't exists.")
+        elif user.email == current_user.email:
+            raise ValidationError("You can't make transfer to your own account.")
 
     def validate_quantity(self, quantity):
-        if current_user.balance < (float(self.quantity.data) * float(self.price.data) * 0.05):
-            raise ValidationError('Not enough balance to.')
+        if float(quantity.data) <= 0:
+            raise ValidationError('Quantity need to be more than 0.')
 
 
 

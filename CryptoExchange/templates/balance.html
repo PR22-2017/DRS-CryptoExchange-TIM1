@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div style="margin: 0 auto; width: 50%;">
+        <br/>
+        <div style="container-fluid">
+            <legend class="border-bottom mb-2">Balance</legend>
+            <p class="mb-2">${{ balance }}</p>
+            <br/>
+        </div>
+        <div style="container-fluid">
+            <legend class="border-bottom mb-2">Crypto balances</legend>
+            <table class="table">
+                <tr>
+                    <th>Crypto Currency</th>
+                    <th>Balance</th>
+                </tr>
+            {% for key, value in crypto_balance.items() %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ value }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+        <br/>
+        <div style="container-fluid">
+            <legend class="border-bottom mb-2">Transfers</legend>
+            <table class="table">
+                <tr>
+                    <th>Type</th>
+                    <th>Crypto currency</th>
+                    <th>Quantity</th>
+                    <th>GAS</th>
+                    <th>State</th>
+                </tr>
+                {% for item in transfer %}
+                    <tr>
+                        {% if item.receiver_id == current_user.id and item.sender_id == current_user.id %}
+                        <td>Bought</td>
+                        {% elif item.sender_id == current_user.id %}
+                        <td>Sent</td>
+                        {% elif item.receiver_id == current_user.id %}
+                        <td>Received</td>
+                        {% endif %}
+                        <td>{{ item.crypto }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.gas }}</td>
+                        <td>{{ item.state.value }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock content %}

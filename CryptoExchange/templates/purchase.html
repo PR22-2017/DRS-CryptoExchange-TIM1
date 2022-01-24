@@ -54,7 +54,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ form.quantity(class="form-control form-control-md", onkeyup="calculateTotal(this.value)") }}
+                        {{ form.quantity(class="form-control form-control-md", onkeyup="calculateTotal()") }}
                     {% endif %}
                 </div>
 

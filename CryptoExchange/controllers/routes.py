@@ -1,12 +1,15 @@
 import datetime
+from _operator import xor
 
 import requests
 from flask import render_template, request, redirect, url_for, flash
+from sqlalchemy import or_
+
 from CryptoExchange import app, bcrypt, db
 from CryptoExchange.Forms.AddBalanceForm import AddBalanceForm
 from CryptoExchange.Forms.PurchaseForm import PurchaseForm
 from CryptoExchange.Forms.UserActivationForm import UserActivationForm
-from CryptoExchange.models.dbmodels import User, Transaction
+from CryptoExchange.models.dbmodels import User, Transaction, TransactionState
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
 from CryptoExchange.Forms.LoginForm import LoginForm
@@ -49,7 +52,30 @@ def login():
     return render_template('login.html', title='Login', form=form)
 
 
+@app.route('/balance')
+@login_required
+def balance():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
+    account_balance = current_user.balance
+    crypto = Transaction.query.filter_by(sender_id=current_user.id, receiver_id=current_user.id).all()
+    crypto_balance = {}
+    for item in crypto:
+        if item.crypto in crypto_balance:
+            crypto_balance[item.crypto] = crypto_balance[item.crypto] + item.quantity
+        else:
+            crypto_balance[item.crypto] = item.quantity
+    transf = Transaction.query.filter(((Transaction.sender_id == current_user.id)
+                                       | (Transaction.receiver_id == current_user.id))
+                                      & (Transaction.sender_id != Transaction.receiver_id)).all()
+    return render_template('balance.html', title='Balance',
+                           balance=account_balance,
+                           crypto_balance=crypto_balance,
+                           transfer=transf)
+
+
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
@@ -60,10 +86,38 @@ def transfer():
     if not current_user.verified:
         return redirect(url_for('profile_activation'))
     form = TransactionForm()
-    form.currencies.choices = get_currencies()
+    crypto_balance = Transaction.query.filter_by(sender_id=current_user.id, receiver_id=current_user.id).all()
+    names = []
+    balances = []
+    for item in crypto_balance:
+        if item.crypto in names:
+            balances[names.index(item.crypto)] = balances[names.index(item.crypto)] + item.quantity
+        else:
+            names.append(item.crypto)
+            balances.append(item.quantity)
+    form.currency.choices = names
+    form.balance.choices = balances
     if form.validate_on_submit():
-        print(form)
-        # TODO - validate sender wallet and give coins to reciever, correct both balances
+        receiver = User.query.filter_by(email=form.receiver_email.data).first()
+        gas_perc = 0.05
+        t = Transaction(sender_id=current_user.id,
+                        receiver_id=receiver.id,
+                        crypto=form.currency.data,
+                        quantity=form.quantity.data,
+                        gas_percentage=gas_perc,
+                        gas=float(form.quantity.data) * gas_perc)
+        for item in names:
+            if item == form.currency.data:
+                if (float(t.quantity) + float(t.gas)) > float(balances[names.index(item)]):
+                    flash("Not enough balance to make transfer.", 'error')
+                    t.state = TransactionState.DENIED
+                else:
+                    flash("Transfer started successfully.", 'success')
+                    crypto_balance[names.index(item)].quantity = float(crypto_balance[names.index(item)].quantity) - ((float(t.quantity) + float(t.gas)))
+                    t.state = TransactionState.IN_PROCESS
+                db.session.add(t)
+                db.session.commit()
+                break
     return render_template('transaction.html', title='Transaction Crypto', form=form)
 
 
@@ -135,11 +189,6 @@ def profile_activation():
     form.card_year.choices = years
     form.card_month.choices = months
     if form.validate_on_submit():
-        current_user.card_number = form.card_number.data
-        current_user.card_month = form.card_month.data
-        current_user.card_year = form.card_year.data
-        current_user.name_on_card = form.name_on_card.data
-        current_user.cvv_cvc = form.cvv_cvc.data
         current_user.verified = True
         current_user.balance = 1
         db.session.commit()
@@ -169,7 +218,8 @@ def purchase():
                                   crypto=form.currencies.data,
                                   quantity=form.quantity.data,
                                   gas_percentage=0,
-                                  gas=0)
+                                  gas=0,
+                                  state=TransactionState.SUCCESS)
         current_user.balance = current_user.balance - (float(form.prices.data) * float(form.quantity.data))
         db.session.add(transaction)
         db.session.commit()

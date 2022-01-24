@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 from CryptoExchange import db, login_manager
 from flask_login import UserMixin
@@ -6,6 +7,12 @@ from flask_login import UserMixin
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+class TransactionState(enum.Enum):
+    IN_PROCESS = "In Process"
+    SUCCESS = "Processed"
+    DENIED = "Denied"
 
 
 class User(db.Model, UserMixin):
@@ -38,7 +45,9 @@ class Transaction(db.Model):
     quantity = db.Column(db.Float, nullable=False)
     gas_percentage = db.Column(db.Float, nullable=False)
     gas = db.Column(db.Float, nullable=False)
+    state = db.Column(db.Enum(TransactionState), nullable=False, default=TransactionState.IN_PROCESS)
     date_started = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"User('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}', '{self.date_started}')"
+        return f"Transaction('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}'," \
+               f"'{self.quantity}', '{self.gas_percentage}', '{self.gas}', '{self.state}', '{self.date_started}')"

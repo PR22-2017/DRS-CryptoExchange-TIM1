@@ -1,61 +1,101 @@
 {% extends "layout.html" %}
 {% block content %}
-  <div class="form-group">
-                  <div style="margin: 0 auto; width: 30%;">
+<div class="form-group">
+    <div style="margin: 0 auto; width: 30%;">
         <form action="" method="post">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-2"><br/>Send Crypto Coins</legend>
-                  <div class="form-group">
-                    {{ form.reciever_email.label(class="form-control-label mt-3") }}
-
-                    {% if form.reciever_email.errors %}
-                    {{ form.reciever_email(class="form-control form-control-md is-invalid")}}
-                        <div class="invalid-feedback">
-                            {% for error in form.reciever_email.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.reciever_email(class="form-control form-control-md") }}
-                    {% endif %}
-
-                </div>
-
                 <div class="form-group">
-                    {{ form.currencies.label(class="form-control-label mt-3") }}
-                    {% if form.currencies.errors %}
-                        {{ form.currencies(class="form-control form-control-md is-invalid")}}
-                        <div class="invalid-feedback">
-                            {% for error in form.currencies.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
+                    {{ form.receiver_email.label(class="form-control-label mt-3") }}
+                    {% if form.receiver_email.errors %}
+                    {{ form.receiver_email(class="form-control form-control-md is-invalid")}}
+                    <div class="invalid-feedback">
+                        {% for error in form.receiver_email.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        {{ form.currencies(class="form-control form-control-md") }}
+                    {{ form.receiver_email(class="form-control form-control-md") }}
                     {% endif %}
                 </div>
 
+                <div class="form-group">
+                    {{ form.currency.label(class="form-control-label mt-3") }}
+                    {% if form.currency.errors %}
+                    {{ form.currency(class="form-control form-control-md is-invalid")}}
+                    <div class="invalid-feedback">
+                        {% for error in form.currency.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.currency(class="form-control form-control-md", onchange="getBalance()") }}
+                    {% endif %}
+                </div>
 
                 <div class="form-group">
-                    {{ form.quantity.label(class="form-control-label mt-3") }}
+                    {{ form.balance.label(class="form-control-label mt-3") }}
+                    {% if form.balance.errors %}
+                    {{ form.balance(class="form-control form-control-md is-invalid")}}
+                    <div class="invalid-feedback">
+                        {% for error in form.balance.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.balance(class="form-control form-control-md") }}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div class="alert alert-primary" role="alert">
+                        Available balance: <label id="available_balance">0.00</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.quantity.label(class="form-control-label") }}
                     {% if form.quantity.errors %}
-                        {{ form.quantity(class="form-control form-control-md is-invalid")}}
-                        <div class="invalid-feedback">
-                            {% for error in form.name_on_card.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
+                    {{ form.quantity(class="form-control form-control-md is-invalid")}}
+                    <div class="invalid-feedback">
+                        {% for error in form.name_on_card.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        {{ form.quantity(class="form-control form-control-md") }}
+                    {{ form.quantity(class="form-control form-control-md", onkeyup="calculateTotal()") }}
                     {% endif %}
                 </div>
 
-            </fieldset>
-            <div class="form-group pb-3 mt-3">
+                <div class="form-group">
+                    <br/>
+                    <div class="alert alert-primary" role="alert">
+                        Total (incl. GAS): <label id="total">0.00</label>
+                    </div>
+                </div>
+
+                            <div class="form-group pb-3 mt-3">
                 {{ form.submit(class="btn btn-outline-info btn-dark") }}
             </div>
-
+            </fieldset>
         </form>
     </div>
-{% endblock content %}
+    <script>
+        document.getElementById("balance").style.display = 'none';
+        getBalance();
+        function getBalance() {
+            var currencyIndex = document.getElementById("currency").selectedIndex;
+            document.getElementById("balance").selectedIndex = currencyIndex;
+            var balance = document.getElementById("balance").value;
+            var balanceElem = document.getElementById("available_balance");
+            balanceElem.innerHTML = balance;
+            calculateTotal()
+        }
+        function calculateTotal() {
+            var quantityElem = document.getElementById("quantity");
+            var totalElem = document.getElementById("total");
+            totalElem.innerHTML = parseFloat(quantityElem.value) + parseFloat(quantityElem.value * 0.05);
+        }
+    </script>
+    {% endblock content %}
