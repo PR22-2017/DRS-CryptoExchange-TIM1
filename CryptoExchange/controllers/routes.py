@@ -3,19 +3,22 @@ import datetime
 import requests
 from flask import render_template, request, redirect, url_for, flash
 from CryptoExchange import app, bcrypt, db
+from CryptoExchange.Forms.AddBalanceForm import AddBalanceForm
 from CryptoExchange.Forms.PurchaseForm import PurchaseForm
 from CryptoExchange.Forms.UserActivationForm import UserActivationForm
-from CryptoExchange.models.dbmodels import User, Transactions
+from CryptoExchange.models.dbmodels import User, Transaction
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
 from CryptoExchange.Forms.LoginForm import LoginForm
 from flask_login import login_required, current_user, login_user, logout_user
 from CryptoExchange.Forms.TransactionForm import TransactionForm
 
+api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
+
+
 @app.route("/")
 @app.route("/home")
 def home():
-    api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
     response = requests.get(api_link)
     data = response.json()
     return render_template('home.html', curr1_name=data[0]['name'], curr1_price=float(data[0]['current_price']),
@@ -54,12 +57,14 @@ def logout():
 
 @app.route('/transfer', methods=['GET', 'POST'])
 def transfer():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
     form = TransactionForm()
     form.currencies.choices = get_currencies()
     if form.validate_on_submit():
         print(form)
         # TODO - validate sender wallet and give coins to reciever, correct both balances
-    return render_template('transaction.html', title='Transaction Crypto', form = form)
+    return render_template('transaction.html', title='Transaction Crypto', form=form)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -73,10 +78,10 @@ def register():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(
-                first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data,
-                address=form.address.data, city=form.city.data, country=form.country.data,
-                phone=form.phone.data, password=hashed_password, verified=False
-                )
+            first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data,
+            address=form.address.data, city=form.city.data, country=form.country.data,
+            phone=form.phone.data, password=hashed_password, verified=False
+        )
         db.session.add(user)
         db.session.commit()
         flash(f'Your account has been created! You are now able to log in.', 'success')
@@ -117,6 +122,8 @@ def profile():
 @app.route('/profile_activation', methods=['GET', 'POST'])
 @login_required
 def profile_activation():
+    if current_user.verified:
+        return redirect(url_for('home'))
     form = UserActivationForm()
     curr_year = datetime.datetime.now().year
     years = []
@@ -144,14 +151,47 @@ def profile_activation():
 @app.route('/purchase', methods=['GET', 'POST'])
 @login_required
 def purchase():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
     form = PurchaseForm()
-    form.currencies.choices = get_currencies()
+    crypto = get_crypto()
+    names = []
+    prices = []
+    for item in crypto:
+        names.append(item)
+        prices.append(crypto[item])
+    form.currencies.choices = names
+    form.prices.choices = prices
     form.balance.data = current_user.balance
-    # TODO - from database get bitcoin marcet cap and calc new balance
-
     if form.validate_on_submit():
+        transaction = Transaction(sender_id=current_user.id,
+                                  receiver_id=current_user.id,
+                                  crypto=form.currencies.data,
+                                  quantity=form.quantity.data,
+                                  gas_percentage=0,
+                                  gas=0)
+        current_user.balance = current_user.balance - (float(form.prices.data) * float(form.quantity.data))
+        db.session.add(transaction)
+        db.session.commit()
+        flash('Crypto coins successfully bought.', 'success')
         return redirect(url_for('profile'))
     return render_template('purchase.html', title='Purchase Crypto', form=form)
+
+
+@app.route('/add_balance', methods=['GET', 'POST'])
+@login_required
+def add_balance():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
+    form = AddBalanceForm()
+    form.current_balance.data = current_user.balance
+    if form.validate_on_submit():
+        current_user.balance = current_user.balance + float(form.balance_to_add.data)
+        current_user.balance = round(current_user.balance, 2)
+        db.session.commit()
+        flash('Balance successfully added!', 'success')
+        return redirect(url_for('purchase'))
+    return render_template('add_balance.html', title='Add Balance', form=form)
 
 
 def get_countries():
@@ -167,10 +207,18 @@ def get_countries():
 
 
 def get_currencies():
-    api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
     retval = []
     response = requests.get(api_link)
     data = response.json()
     for item in data:
         retval.append(item['name'])
+    return retval
+
+
+def get_crypto():
+    retval = {}
+    response = requests.get(api_link)
+    data = response.json()
+    for item in data:
+        retval.update({(item['name']): (item['current_price'])})
     return retval

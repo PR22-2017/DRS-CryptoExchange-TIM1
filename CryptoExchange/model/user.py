@@ -18,27 +18,10 @@ class User:
         self.email = email
         self.password = password
         self.balance = 0
-        self.card_number = '1234123412341234'
-        self.name_on_card = 'First Last'
-        self.card_month = '01'
-        self.card_year = 2021
-        self.cvv_cvc = '123'
         # dictionary "crypto_name:Crypto"
         self.crypto_balances = {}
         self.transactions = {}
         self.verified = False
-
-    def add_balance(self, card_number, card_name, card_code, balance):
-        if len(card_number) > 16 or len(card_number) < 16:
-            return False
-        if not(isalpha(card_name)):
-            return False
-        if len(card_code) > 3 or len(card_code) < 3:
-            return False
-        if balance <= 0:
-            return False
-        self.balance = self.balance + balance
-        return True
 
     def new_transaction(self, crypto, receiver):
         if Database.check_user_exists(receiver):

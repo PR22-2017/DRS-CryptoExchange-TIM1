@@ -16,7 +16,6 @@ class TransactionUtil():
                     cursor = connection.cursor()
                     cursor.execute("SELECT * from {}".format(transactions_table))
                     rows = cursor.fetchall()
-                    print(rows)
             except Exception as e:
                 print(e)
             time.sleep(5*60)

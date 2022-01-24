@@ -19,27 +19,25 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(60), nullable=False)
     verified = db.Column(db.Boolean, default=False, nullable=False)
-    card_number = db.Column(db.String(16), nullable=True)
-    name_on_card = db.Column(db.String(40), nullable=True)
-    card_month = db.Column(db.String(2), nullable=True)
-    card_year = db.Column(db.Integer, nullable=True)
-    cvv_cvc = db.Column(db.String(3), nullable=True)
     balance = db.Column(db.Float, default=0, nullable=False)
 
-    sent_transactions = db.relationship('Transactions', backref='sender',
-                                        foreign_keys="Transactions.sender_id", lazy=True)
-    recv_transactions = db.relationship('Transactions', backref='receiver',
-                                        foreign_keys="Transactions.receiver_id", lazy=True)
+    sent_transactions = db.relationship('Transaction', backref='sender',
+                                        foreign_keys="Transaction.sender_id", lazy=True)
+    recv_transactions = db.relationship('Transaction', backref='receiver',
+                                        foreign_keys="Transaction.receiver_id", lazy=True)
 
     def __repr__(self):
         return f"User('{self.first_name}', '{self.last_name}', '{self.email}')"
 
 
-class Transactions(db.Model):
+class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     crypto = db.Column(db.String(60), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    gas_percentage = db.Column(db.Float, nullable=False)
+    gas = db.Column(db.Float, nullable=False)
     date_started = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
