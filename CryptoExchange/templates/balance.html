@@ -25,7 +25,8 @@
         <br/>
         <div style="container-fluid">
             <legend class="border-bottom mb-2">Transfers</legend>
-            <table class="table">
+            <table id="data" class="table table-striped">
+                <thead>
                 <tr>
                     <th>Type</th>
                     <th>Crypto currency</th>
@@ -33,6 +34,8 @@
                     <th>GAS</th>
                     <th>State</th>
                 </tr>
+                </thead>
+                <tbody>
                 {% for item in transfer %}
                     <tr>
                         {% if item.receiver_id == current_user.id and item.sender_id == current_user.id %}
@@ -48,7 +51,16 @@
                         <td>{{ item.state.value }}</td>
                     </tr>
                 {% endfor %}
+                </tbody>
             </table>
         </div>
     </div>
 {% endblock content %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable();
+    });
+  </script>
+{% endblock scripts %}
