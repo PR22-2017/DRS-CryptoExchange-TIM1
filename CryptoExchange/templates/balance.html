@@ -4,7 +4,7 @@
         <br/>
         <div style="container-fluid">
             <legend class="border-bottom mb-2">Balance</legend>
-            <p class="mb-2">${{ balance }}</p>
+            <p class="mb-2">${{ "{:.4f}".format(balance) }}</p>
             <br/>
         </div>
         <div style="container-fluid">
@@ -17,7 +17,7 @@
             {% for key, value in crypto_balance.items() %}
                 <tr>
                     <td>{{ key }}</td>
-                    <td>{{ value }}</td>
+                    <td>{{ "{:.4f}".format(value) }}</td>
                 </tr>
             {% endfor %}
             </table>
@@ -47,7 +47,7 @@
                         {% endif %}
                         <td>{{ item.crypto }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>{{ item.gas }}</td>
+                        <td>{{ "{:.4f}".format(item.gas) }}</td>
                         <td>{{ item.state.value }}</td>
                     </tr>
                 {% endfor %}
@@ -60,7 +60,9 @@
 {% block scripts %}
   <script>
     $(document).ready(function () {
-      $('#data').DataTable();
+      $('#data').DataTable({
+      "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]]
+      });
     });
   </script>
 {% endblock scripts %}

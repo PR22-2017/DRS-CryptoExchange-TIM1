@@ -81,21 +81,30 @@
             </fieldset>
         </form>
     </div>
+        {% endblock content %}
+
+    {% block scripts %}
     <script>
+        const formatter = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 4,
+                maximumFractionDigits: 4,
+        });
         document.getElementById("balance").style.display = 'none';
+
         getBalance();
         function getBalance() {
             var currencyIndex = document.getElementById("currency").selectedIndex;
             document.getElementById("balance").selectedIndex = currencyIndex;
             var balance = document.getElementById("balance").value;
             var balanceElem = document.getElementById("available_balance");
-            balanceElem.innerHTML = balance;
+            balanceElem.innerHTML = formatter.format(balance);
             calculateTotal()
         }
         function calculateTotal() {
             var quantityElem = document.getElementById("quantity");
             var totalElem = document.getElementById("total");
-            totalElem.innerHTML = parseFloat(quantityElem.value) + parseFloat(quantityElem.value * 0.05);
+            var result = parseFloat(quantityElem.value) + parseFloat(quantityElem.value * 0.05);
+            totalElem.innerHTML = formatter.format(result);
         }
     </script>
-    {% endblock content %}
+        {% endblock scripts %}

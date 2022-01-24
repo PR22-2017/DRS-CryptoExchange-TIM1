@@ -7,7 +7,7 @@
                 <legend class="border-bottom mb-2"><br/>Purchase Crypto coins</legend>
                 <div class="form-group">
                     <div class="alert alert-primary" role="alert">
-                        Available balance: ${{ form.balance.data }}
+                        Available balance: ${{ "{:.4f}".format(form.balance.data) }}
                         <div style="text-align: right;">
                         <a class="btn btn-outline-info btn-dark" href="{{ url_for('add_balance') }}" role="button">Add Balance</a>
                         </div>
@@ -70,7 +70,13 @@
             </fieldset>
         </form>
     </div>
+{% endblock content %}
+{% block scripts %}
 <script>
+    const formatter = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+    });
     var prices = document.getElementById('prices');
     prices.style.display = 'none';
     getPrice();
@@ -86,7 +92,7 @@
         var quantityElem = document.getElementById("quantity");
         var totalElem = document.getElementById("total");
         var priceElem = document.getElementById("price");
-        totalElem.innerHTML = priceElem.innerHTML * quantityElem.value;
+        totalElem.innerHTML = formatter.format(priceElem.innerHTML * quantityElem.value);
     }
 </script>
-{% endblock content %}
+{% endblock scripts %}
