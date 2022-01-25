@@ -81,17 +81,9 @@ def transfer():
     if not current_user.verified:
         return redirect(url_for('profile_activation'))
     form = TransactionForm()
-    crypto_balance = Transaction.query.filter_by(sender_id=current_user.id, receiver_id=current_user.id).all()
-    names = []
-    balances = []
-    for item in crypto_balance:
-        if item.crypto in names:
-            balances[names.index(item.crypto)] = balances[names.index(item.crypto)] + item.quantity
-        else:
-            names.append(item.crypto)
-            balances.append(item.quantity)
-    form.currency.choices = names
-    form.balance.choices = balances
+    crypto_balance = get_user_crypto_balance(current_user.id)
+    form.currency.choices = list(crypto_balance.keys())
+    form.balance.choices = list(crypto_balance.values())
     if form.validate_on_submit():
         receiver = User.query.filter_by(email=form.receiver_email.data).first()
         gas_perc = 0.05
@@ -101,15 +93,13 @@ def transfer():
                         quantity=form.quantity.data,
                         gas_percentage=gas_perc,
                         gas=float(form.quantity.data) * gas_perc)
-        for item in names:
-            if item == form.currency.data:
-                if (float(t.quantity) + float(t.gas)) > float(balances[names.index(item)]):
+        for name, quantity in crypto_balance.items():
+            if name == form.currency.data:
+                if (float(t.quantity) + float(t.gas)) > float(quantity):
                     flash("Not enough balance to make transfer.", 'error')
                     t.state = TransactionState.DENIED
                 else:
                     flash("Transfer started successfully.", 'success')
-                    crypto_balance[names.index(item)].quantity = float(crypto_balance[names.index(item)].quantity) - (
-                        (float(t.quantity) + float(t.gas)))
                     t.state = TransactionState.IN_PROCESS
                 db.session.add(t)
                 db.session.commit()
@@ -242,13 +232,29 @@ def add_balance():
 
 # helpers
 def get_user_crypto_balance(user_id):
-    crypto = Transaction.query.filter_by(sender_id=user_id, receiver_id=user_id).all()
+    crypto = Transaction.query.filter((Transaction.sender_id == current_user.id) |
+                                      (Transaction.receiver_id == current_user.id)).all()
     crypto_balance = {}
     for item in crypto:
         if item.crypto in crypto_balance:
-            crypto_balance[item.crypto] = crypto_balance[item.crypto] + item.quantity
+            # bought
+            if item.sender_id == item.receiver_id:
+                crypto_balance[item.crypto] = crypto_balance[item.crypto] + item.quantity
+            # received
+            if item.sender_id != current_user.id and item.state == TransactionState.SUCCESS:
+                crypto_balance[item.crypto] = crypto_balance[item.crypto] + item.quantity
+            # sent
+            if item.receiver_id != current_user.id:
+                crypto_balance[item.crypto] = crypto_balance[item.crypto] - (item.quantity + item.gas)
         else:
-            crypto_balance[item.crypto] = item.quantity
+            if item.sender_id == item.receiver_id:
+                crypto_balance[item.crypto] = item.quantity
+            # received
+            if item.sender_id != current_user.id and item.state == TransactionState.SUCCESS:
+                crypto_balance[item.crypto] = item.quantity
+            # sent
+            if item.receiver_id != current_user.id:
+                crypto_balance[item.crypto] = 0 - (float(item.quantity) + float(item.gas))
     return crypto_balance
 
 
