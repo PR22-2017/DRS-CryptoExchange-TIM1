@@ -28,16 +28,16 @@ class User(db.Model, UserMixin):
     verified = db.Column(db.Boolean, default=False, nullable=False)
     balance = db.Column(db.Float, default=0, nullable=False)
 
-    sent_transactions = db.relationship('Transaction', backref='sender',
-                                        foreign_keys="Transaction.sender_id", lazy=True)
-    recv_transactions = db.relationship('Transaction', backref='receiver',
-                                        foreign_keys="Transaction.receiver_id", lazy=True)
+    sent_transactions = db.relationship('Transactions', backref='sender',
+                                        foreign_keys="Transactions.sender_id", lazy=True)
+    recv_transactions = db.relationship('Transactions', backref='receiver',
+                                        foreign_keys="Transactions.receiver_id", lazy=True)
 
     def __repr__(self):
         return f"User('{self.first_name}', '{self.last_name}', '{self.email}')"
 
 
-class Transaction(db.Model):
+class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -49,5 +49,5 @@ class Transaction(db.Model):
     date_started = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"Transaction('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}'," \
+        return f"Transactions('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}'," \
                f"'{self.quantity}', '{self.gas_percentage}', '{self.gas}', '{self.state}', '{self.date_started}')"

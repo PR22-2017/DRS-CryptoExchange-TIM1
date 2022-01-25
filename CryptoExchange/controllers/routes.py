@@ -1,4 +1,7 @@
 import datetime
+import sqlite3
+import threading
+import time
 from _operator import xor
 
 import requests
@@ -9,7 +12,7 @@ from CryptoExchange import app, bcrypt, db
 from CryptoExchange.Forms.AddBalanceForm import AddBalanceForm
 from CryptoExchange.Forms.PurchaseForm import PurchaseForm
 from CryptoExchange.Forms.UserActivationForm import UserActivationForm
-from CryptoExchange.models.dbmodels import User, Transaction, TransactionState
+from CryptoExchange.models.dbmodels import User, Transactions, TransactionState
 from CryptoExchange.Forms.RegistrationForm import RegistrationForm
 from CryptoExchange.Forms.UserAccountForm import UserAccountForm
 from CryptoExchange.Forms.LoginForm import LoginForm
@@ -59,9 +62,9 @@ def balance():
         return redirect(url_for('profile_activation'))
     account_balance = current_user.balance
     crypto_balance = get_user_crypto_balance(current_user.id)
-    transfers = Transaction.query.filter(((Transaction.sender_id == current_user.id)
-                                          | (Transaction.receiver_id == current_user.id))
-                                         & (Transaction.sender_id != Transaction.receiver_id)).all()
+    transfers = Transactions.query.filter(((Transactions.sender_id == current_user.id)
+                                           | (Transactions.receiver_id == current_user.id))
+                                          & (Transactions.sender_id != Transactions.receiver_id)).all()
     return render_template('balance.html', title='Balance',
                            balance=account_balance,
                            crypto_balance=crypto_balance,
@@ -87,12 +90,12 @@ def transfer():
     if form.validate_on_submit():
         receiver = User.query.filter_by(email=form.receiver_email.data).first()
         gas_perc = 0.05
-        t = Transaction(sender_id=current_user.id,
-                        receiver_id=receiver.id,
-                        crypto=form.currency.data,
-                        quantity=form.quantity.data,
-                        gas_percentage=gas_perc,
-                        gas=float(form.quantity.data) * gas_perc)
+        t = Transactions(sender_id=current_user.id,
+                         receiver_id=receiver.id,
+                         crypto=form.currency.data,
+                         quantity=form.quantity.data,
+                         gas_percentage=gas_perc,
+                         gas=float(form.quantity.data) * gas_perc)
         for name, quantity in crypto_balance.items():
             if name == form.currency.data:
                 if (float(t.quantity) + float(t.gas)) > float(quantity):
@@ -103,6 +106,8 @@ def transfer():
                     t.state = TransactionState.IN_PROCESS
                 db.session.add(t)
                 db.session.commit()
+                validation_thread = threading.Thread(target=transaction_validation, args=[t.id])
+                validation_thread.start()
                 break
     return render_template('transaction.html', title='Transaction Crypto', form=form)
 
@@ -199,13 +204,13 @@ def purchase():
     form.prices.choices = prices
     form.balance.data = current_user.balance
     if form.validate_on_submit():
-        transaction = Transaction(sender_id=current_user.id,
-                                  receiver_id=current_user.id,
-                                  crypto=form.currencies.data,
-                                  quantity=form.quantity.data,
-                                  gas_percentage=0,
-                                  gas=0,
-                                  state=TransactionState.SUCCESS)
+        transaction = Transactions(sender_id=current_user.id,
+                                   receiver_id=current_user.id,
+                                   crypto=form.currencies.data,
+                                   quantity=form.quantity.data,
+                                   gas_percentage=0,
+                                   gas=0,
+                                   state=TransactionState.SUCCESS)
         current_user.balance = current_user.balance - (float(form.prices.data) * float(form.quantity.data))
         db.session.add(transaction)
         db.session.commit()
@@ -230,10 +235,27 @@ def add_balance():
     return render_template('add_balance.html', title='Add Balance', form=form)
 
 
+# validation thread
+def transaction_validation(transaction_id):
+    db_name = 'CryptoExchange/novabaza.db'
+    transactions_table = 'transactions'
+    validation_time = 5*60
+    time.sleep(validation_time)
+    try:
+        with sqlite3.connect(db_name) as connection:
+            cursor = connection.cursor()
+            sql = f"UPDATE {transactions_table} SET state='SUCCESS' WHERE id={transaction_id};"
+            print(sql)
+            cursor.execute(sql)
+            connection.commit()
+    except Exception as e:
+        print(e)
+
+
 # helpers
 def get_user_crypto_balance(user_id):
-    crypto = Transaction.query.filter((Transaction.sender_id == current_user.id) |
-                                      (Transaction.receiver_id == current_user.id)).all()
+    crypto = Transactions.query.filter((Transactions.sender_id == current_user.id) |
+                                       (Transactions.receiver_id == current_user.id)).all()
     crypto_balance = {}
     for item in crypto:
         if item.crypto in crypto_balance:
