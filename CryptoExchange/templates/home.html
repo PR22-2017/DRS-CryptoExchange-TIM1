@@ -1,60 +1,62 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container">
-        <h1 style="text-align: center; padding-top: 10rem;">Welcome to CryptoExchange!</h1>
-        <div class="row row-cols-1 row-cols-md-5 g-4" style="padding-top: 10rem;">
-            <div class="col">
-                <div class="card text-white bg-dark mb-3">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ curr1_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${{ curr1_price }}</p>
-                    </div>
+<br/>
+<div class="container" style="margin: 0 auto; width: 50%;">
+    <h1 style="text-align: center;">Welcome to CryptoExchange!</h1>
+    <br/>
+    <div class="row row-cols-1 row-cols-md-5 g-4">
+        <div class="col">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">
+                    <h5 class="card-title">{{ curr1_name }}</h5>
                 </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-dark mb-3">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ curr2_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${{ curr2_price }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-dark mb-3">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ curr3_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${{ curr3_price }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-dark mb-3">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ curr4_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${{ curr4_price }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-dark mb-3">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ curr5_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${{ curr5_price }}</p>
-                    </div>
+                <div class="card-body">
+                    <p class="card-text">${{ curr1_price }}</p>
                 </div>
             </div>
         </div>
-        <br />
-        <h3 style="text-align: center;">... and we offer many more Crypto currencies!</h3>
+        <div class="col">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">
+                    <h5 class="card-title">{{ curr2_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">${{ curr2_price }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">
+                    <h5 class="card-title">{{ curr3_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">${{ curr3_price }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">
+                    <h5 class="card-title">{{ curr4_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">${{ curr4_price }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">
+                    <h5 class="card-title">{{ curr5_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">${{ curr5_price }}</p>
+                </div>
+            </div>
+        </div>
     </div>
+    <br/>
+    <h3 style="text-align: center; vertical-align: bottom;">... and we offer many more Crypto currencies!</h3>
+</div>
 {% endblock content %}

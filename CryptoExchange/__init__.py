@@ -6,6 +6,7 @@ from flask_login import LoginManager
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '9174e54afccf07de81c0d365b8ab2b23'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///novabaza.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)

@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+{% block content %}
+<div style="margin: 0 auto; width: 50%;">
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        </br>
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-2">Exchange Crypto currency</legend>
+            <div class="form-group">
+                {{ form.from_crypto.label(class="form-control-label mt-3") }}
+
+                {% if form.from_crypto.errors %}
+                {{ form.from_crypto(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.from_crypto.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.from_crypto(class="form-control form-control-md", onchange="getBalance()") }}
+                {% endif %}
+            </div>
+            <div class="form-group" style="display: none;">
+                {{ form.from_price.label(class="form-control-label mt-3") }}
+
+                {% if form.from_price.errors %}
+                {{ form.from_price(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.from_price.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.from_price(class="form-control form-control-md") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.from_balance.label(class="form-control-label mt-3") }}
+
+                {% if form.from_balance.errors %}
+                {{ form.from_balance(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.from_balance.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.from_balance(class="form-control form-control-md", ) }}
+                {% endif %}
+                <br/>
+                <div class="alert alert-primary" role="alert" id="balance">
+  0.0000
+</div>
+            </div>
+            <div class="form-group">
+                {{ form.from_quantity.label(class="form-control-label mt-3") }}
+
+                {% if form.from_quantity.errors %}
+                {{ form.from_quantity(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.from_quantity.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.from_quantity(class="form-control form-control-md", onkeyup="calculateQuantity()") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.to_crypto.label(class="form-control-label mt-3") }}
+
+                {% if form.to_crypto.errors %}
+                {{ form.to_crypto(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.to_crypto.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.to_crypto(class="form-control form-control-md", onchange="calculateQuantity()") }}
+                {% endif %}
+            </div>
+            <div class="form-group" style="display: none;">
+                {{ form.to_price.label(class="form-control-label mt-3") }}
+
+                {% if form.to_price.errors %}
+                {{ form.to_price(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.to_price.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.to_price(class="form-control form-control-md") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.to_quantity.label(class="form-control-label mt-3") }}
+
+                {% if form.to_quantity.errors %}
+                {{ form.to_quantity(class="form-control form-control-md is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.to_quantity.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.to_quantity(class="form-control form-control-md") }}
+                {% endif %}
+                <br/>
+                <div class="alert alert-primary" role="alert" id="quantity">
+  0.0000
+</div>
+            </div>
+        </fieldset>
+
+        <div style="margin-top: 1rem;" class="text-center">
+            {{ form.submit(class="btn btn-outline-info btn-dark") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    const formatter = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+    });
+    var from_price = document.getElementById('from_price');
+    from_price.style.display = 'none';
+    var to_price = document.getElementById('to_price');
+    to_price.style.display = 'none';
+    var from_balance = document.getElementById('from_balance');
+    from_balance.style.display = 'none';
+    getBalance();
+    function getBalance() {
+        var currencyIndex = document.getElementById('from_crypto').selectedIndex;
+        document.getElementById('from_price').selectedIndex = currencyIndex;
+        document.getElementById('from_balance').selectedIndex = currencyIndex;
+        var balance = document.getElementById('from_balance').value;
+        var balanceElem = document.getElementById('balance');
+        balanceElem.innerHTML = formatter.format(balance);
+        calculateQuantity();
+    }
+    function calculateQuantity() {
+        var conversionCryptoIndex = document.getElementById('to_crypto').selectedIndex;
+        document.getElementById('to_price').selectedIndex = conversionCryptoIndex;
+        var conversionCryptoPrice = document.getElementById('to_price').value;
+        var currentCryptoPrice = document.getElementById('from_price').value;
+        var currentCryptoQuantity = document.getElementById('from_quantity').value;
+        var conversionCryptoQuantity = document.getElementById('quantity');
+        conversionCryptoQuantity.innerHTML = formatter.format((currentCryptoQuantity * currentCryptoPrice) / conversionCryptoPrice);
+        document.getElementById('to_quantity').value = ((currentCryptoQuantity * currentCryptoPrice) / conversionCryptoPrice);
+    }
+</script>
+{% endblock scripts %}

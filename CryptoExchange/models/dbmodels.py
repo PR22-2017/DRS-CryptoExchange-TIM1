@@ -41,6 +41,7 @@ class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transaction_hash = db.Column(db.String(64), nullable=False, default='0')
     crypto = db.Column(db.String(60), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
     gas_percentage = db.Column(db.Float, nullable=False)

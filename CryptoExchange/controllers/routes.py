@@ -1,23 +1,22 @@
 import datetime
+import random
 import sqlite3
 import threading
 import time
-from _operator import xor
-
 import requests
 from flask import render_template, request, redirect, url_for, flash
-from sqlalchemy import or_
-
+import sha3
 from CryptoExchange import app, bcrypt, db
-from CryptoExchange.Forms.AddBalanceForm import AddBalanceForm
-from CryptoExchange.Forms.PurchaseForm import PurchaseForm
-from CryptoExchange.Forms.UserActivationForm import UserActivationForm
+from CryptoExchange.forms.AddBalanceForm import AddBalanceForm
+from CryptoExchange.forms.ExchangeForm import ExchangeForm
+from CryptoExchange.forms.PurchaseForm import PurchaseForm
+from CryptoExchange.forms.UserActivationForm import UserActivationForm
 from CryptoExchange.models.dbmodels import User, Transactions, TransactionState
-from CryptoExchange.Forms.RegistrationForm import RegistrationForm
-from CryptoExchange.Forms.UserAccountForm import UserAccountForm
-from CryptoExchange.Forms.LoginForm import LoginForm
+from CryptoExchange.forms.RegistrationForm import RegistrationForm
+from CryptoExchange.forms.UserAccountForm import UserAccountForm
+from CryptoExchange.forms.LoginForm import LoginForm
 from flask_login import login_required, current_user, login_user, logout_user
-from CryptoExchange.Forms.TransactionForm import TransactionForm
+from CryptoExchange.forms.TransactionForm import TransactionForm
 
 api_link = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
 
@@ -90,8 +89,13 @@ def transfer():
     if form.validate_on_submit():
         receiver = User.query.filter_by(email=form.receiver_email.data).first()
         gas_perc = 0.05
+        hashing = sha3.keccak_256()
+        hash_args = current_user.email + receiver.email + form.quantity.data + str(random.randint(1, 100))
+        hashing.update(hash_args.encode('ascii'))
+        print(hashing.digest_size)
         t = Transactions(sender_id=current_user.id,
                          receiver_id=receiver.id,
+                         transaction_hash=hashing.hexdigest(),
                          crypto=form.currency.data,
                          quantity=form.quantity.data,
                          gas_percentage=gas_perc,
@@ -235,17 +239,57 @@ def add_balance():
     return render_template('add_balance.html', title='Add Balance', form=form)
 
 
+@app.route('/exchange', methods=['GET', 'POST'])
+@login_required
+def exchange():
+    if not current_user.verified:
+        return redirect(url_for('profile_activation'))
+    form = ExchangeForm()
+    crypto_balance = get_user_crypto_balance(current_user.id)
+    form.from_crypto.choices = list(crypto_balance.keys())
+    form.from_balance.choices = list(crypto_balance.values())
+    cryptos = get_crypto()
+    crypto_price = []
+    for item in crypto_balance:
+        print(cryptos[item])
+        crypto_price.append(cryptos[item])
+    form.from_price.choices = crypto_price
+    form.to_crypto.choices = list(cryptos.keys())
+    form.to_price.choices = list(cryptos.values())
+    if form.validate_on_submit():
+        t_add = Transactions(sender_id=current_user.id,
+                             receiver_id=current_user.id,
+                             crypto=form.to_crypto.data,
+                             quantity=form.to_quantity.data,
+                             gas_percentage=0.0,
+                             gas=0.0,
+                             state=TransactionState.SUCCESS)
+        t_remove = Transactions(sender_id=current_user.id,
+                                receiver_id=current_user.id,
+                                crypto=form.from_crypto.data,
+                                quantity=0-float(form.from_quantity.data),
+                                gas_percentage=0.0,
+                                gas=0.0,
+                                state=TransactionState.SUCCESS)
+        db.session.add(t_remove)
+        db.session.commit()
+        db.session.add(t_add)
+        db.session.commit()
+        flash('Crypto successfully exchanged!', 'success')
+        return redirect(url_for('exchange'))
+    return render_template('exchange.html', title='Exchange Crypto Currencies', form=form)
+
+
 # validation thread
 def transaction_validation(transaction_id):
     db_name = 'CryptoExchange/novabaza.db'
     transactions_table = 'transactions'
-    validation_time = 5*60
+    validation_time = 5 * 60
     time.sleep(validation_time)
     try:
         with sqlite3.connect(db_name) as connection:
             cursor = connection.cursor()
             sql = f"UPDATE {transactions_table} SET state='SUCCESS' WHERE id={transaction_id};"
-            print(sql)
             cursor.execute(sql)
             connection.commit()
     except Exception as e:
@@ -271,10 +315,8 @@ def get_user_crypto_balance(user_id):
         else:
             if item.sender_id == item.receiver_id:
                 crypto_balance[item.crypto] = item.quantity
-            # received
             if item.sender_id != current_user.id and item.state == TransactionState.SUCCESS:
                 crypto_balance[item.crypto] = item.quantity
-            # sent
             if item.receiver_id != current_user.id:
                 crypto_balance[item.crypto] = 0 - (float(item.quantity) + float(item.gas))
     return crypto_balance

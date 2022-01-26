@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div style="margin: 0 auto; width: 30%;">
+    <div style="margin: 0 auto; width: 50%;">
         <br/>
         <div class="media">
-            <img alt="user-image" style="width:100px;height:100px; border:2px solid black;" class="rounded-circle account-img" src="{{url_for('static', filename='userimage2.jpg')}}">
+            <img alt="user-image" style="width:100px;height:100px; border:2px solid black;" class="rounded-circle account-img" src="{{url_for('static', filename='icon.png')}}">
             <div class="media-body">
                 <h2 class="account-heading">{{ current_user.first_name }} {{ current_user.last_name}}</h2>
             </div>
