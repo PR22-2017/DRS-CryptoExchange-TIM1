@@ -113,6 +113,7 @@ def transfer():
                 validation_thread = threading.Thread(target=transaction_validation, args=[t.id])
                 validation_thread.start()
                 break
+        return redirect(url_for('balance'))
     return render_template('transaction.html', title='Transaction Crypto', form=form)
 
 
@@ -219,7 +220,7 @@ def purchase():
         db.session.add(transaction)
         db.session.commit()
         flash('Crypto coins successfully bought.', 'success')
-        return redirect(url_for('profile'))
+        return redirect(url_for('balance'))
     return render_template('purchase.html', title='Purchase Crypto', form=form)
 
 

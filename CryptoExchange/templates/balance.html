@@ -1,68 +1,80 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div style="margin: 0 auto; width: 50%;">
-        <br/>
-        <div style="container-fluid">
-            <legend class="border-bottom mb-2">Balance</legend>
-            <p class="mb-2">${{ "{:.4f}".format(balance) }}</p>
-            <br/>
-        </div>
-        <div style="container-fluid">
-            <legend class="border-bottom mb-2">Crypto balances</legend>
-            <table class="table table-hover">
-                <tr>
-                    <th>Crypto Currency</th>
-                    <th>Balance</th>
-                </tr>
-            {% for key, value in crypto_balance.items() %}
-                <tr>
-                    <td>{{ key }}</td>
-                    <td>{{ "{:.4f}".format(value) }}</td>
-                </tr>
-            {% endfor %}
-            </table>
+<div style="margin: 0 auto; width: 50%;">
+    <br/>
+    <div style="container-fluid">
+        <legend class="border-bottom mb-3">Balance</legend>
+        <div class="alert alert-info" role="alert">
+            ${{ "{:.4f}".format(balance) }}
+            <div style="text-align: right;">
+                        <a class="btn btn-outline-info btn-light" href="{{ url_for('add_balance') }}" role="button">Add Balance</a>
+                        </div>
         </div>
         <br/>
-        <div style="container-fluid">
-            <legend class="border-bottom mb-2">Transfers</legend>
-            <table id="data" class="table table-hover">
-                <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Crypto currency</th>
-                    <th>Quantity</th>
-                    <th>GAS</th>
-                    <th>State</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for item in transfer %}
-                    <tr>
-                        {% if item.receiver_id == current_user.id and item.sender_id == current_user.id %}
-                        <td>Bought</td>
-                        {% elif item.sender_id == current_user.id %}
-                        <td>Sent</td>
-                        {% elif item.receiver_id == current_user.id %}
-                        <td>Received</td>
-                        {% endif %}
-                        <td>{{ item.crypto }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ "{:.4f}".format(item.gas) }}</td>
-                        <td>{{ item.state.value }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
     </div>
+    <div style="container-fluid">
+        <legend class="border-bottom mb-3">Crypto balances</legend>
+        <table class="table table-hover">
+            <tr>
+                <th>Crypto Currency</th>
+                <th>Balance</th>
+            </tr>
+            {% for key, value in crypto_balance.items() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ "{:.4f}".format(value) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+                <div style="text-align: right;">
+                        <a class="btn btn-outline-info btn-light" href="{{ url_for('purchase') }}" role="button">Purchase Crypto</a>
+                        </div>
+    </div>
+    <br/>
+    <div style="container-fluid">
+        <legend class="border-bottom mb-3">Transfers</legend>
+        <table id="data" class="table table-hover">
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Crypto currency</th>
+                <th>Quantity</th>
+                <th>GAS (5%)</th>
+                <th>State</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in transfer %}
+            <tr>
+                {% if item.receiver_id == current_user.id and item.sender_id == current_user.id %}
+                <td>Bought</td>
+                {% elif item.sender_id == current_user.id %}
+                <td>Sent</td>
+                {% elif item.receiver_id == current_user.id %}
+                <td>Received</td>
+                {% endif %}
+                <td>{{ item.date_started.strftime('%d.%m.%Y. %H:%M') }}</td>
+                <td>{{ item.crypto }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ "{:.4f}".format(item.gas) }}</td>
+                <td>{{ item.state.value }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock content %}
 
 {% block scripts %}
-  <script>
+<script>
     $(document).ready(function() {
       $('#data').DataTable({
+      "order": [[ 1, "desc" ]],
       "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]]
       });
     });
-  </script>
+
+</script>
 {% endblock scripts%}

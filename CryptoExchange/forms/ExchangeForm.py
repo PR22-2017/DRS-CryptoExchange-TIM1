@@ -16,3 +16,7 @@ class ExchangeForm(FlaskForm):
     def validate_from_quantity(self, from_quantity):
         if float(from_quantity.data) <= 0 or float(self.from_balance.data) < float(from_quantity.data):
             raise ValidationError('Quantity must be more than 0, but less than available balance.')
+
+    def validate_to_crypto(self, to_crypto):
+        if to_crypto.data == self.from_crypto.data:
+            raise ValidationError("Can't convert to same currency.")
