@@ -92,7 +92,7 @@ def transfer():
         hashing = sha3.keccak_256()
         hash_args = current_user.email + receiver.email + form.quantity.data + str(random.randint(1, 100))
         hashing.update(hash_args.encode('ascii'))
-        print(hashing.digest_size)
+
         t = Transactions(sender_id=current_user.id,
                          receiver_id=receiver.id,
                          transaction_hash=hashing.hexdigest(),
@@ -105,13 +105,15 @@ def transfer():
                 if (float(t.quantity) + float(t.gas)) > float(quantity):
                     flash("Not enough balance to make transfer.", 'error')
                     t.state = TransactionState.DENIED
+                    db.session.add(t)
+                    db.session.commit()
                 else:
                     flash("Transfer started successfully.", 'success')
                     t.state = TransactionState.IN_PROCESS
-                db.session.add(t)
-                db.session.commit()
-                validation_thread = threading.Thread(target=transaction_validation, args=[t.id])
-                validation_thread.start()
+                    db.session.add(t)
+                    db.session.commit()
+                    validation_thread = threading.Thread(target=transaction_validation, args=[t.id])
+                    validation_thread.start()
                 break
         return redirect(url_for('balance'))
     return render_template('transaction.html', title='Transaction Crypto', form=form)
@@ -252,7 +254,6 @@ def exchange():
     cryptos = get_crypto()
     crypto_price = []
     for item in crypto_balance:
-        print(cryptos[item])
         crypto_price.append(cryptos[item])
     form.from_price.choices = crypto_price
     form.to_crypto.choices = list(cryptos.keys())
@@ -299,8 +300,9 @@ def transaction_validation(transaction_id):
 
 # helpers
 def get_user_crypto_balance(user_id):
-    crypto = Transactions.query.filter((Transactions.sender_id == current_user.id) |
-                                       (Transactions.receiver_id == current_user.id)).all()
+    crypto = Transactions.query.filter(((Transactions.sender_id == current_user.id) |
+                                       (Transactions.receiver_id == current_user.id)) &
+                                       (Transactions.state != 'DENIED')).all()
     crypto_balance = {}
     for item in crypto:
         if item.crypto in crypto_balance:

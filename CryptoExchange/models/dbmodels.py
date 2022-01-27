@@ -47,7 +47,7 @@ class Transactions(db.Model):
     gas_percentage = db.Column(db.Float, nullable=False)
     gas = db.Column(db.Float, nullable=False)
     state = db.Column(db.Enum(TransactionState), nullable=False, default=TransactionState.IN_PROCESS)
-    date_started = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_started = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     def __repr__(self):
         return f"Transactions('{self.id}', '{self.sender_id}', '{self.receiver_id}', '{self.crypto}'," \

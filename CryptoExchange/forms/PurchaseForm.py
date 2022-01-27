@@ -16,3 +16,5 @@ class PurchaseForm(FlaskForm):
     def validate_quantity(self, quantity):
         if current_user.balance < (float(quantity.data) * float(self.prices.data)):
             raise ValidationError('Not enough balance.')
+        if float(quantity.data) <= 0:
+            raise ValidationError('Please input number greater than 0')
